@@ -43,4 +43,4 @@ def extract_frames(video_path, interval, output_folder):
     print(f"Extracted {extracted_count} frames.")
 
 # Example usage
-extract_frames(r"C:\Users\phili\OneDrive\Year4\SE4450\FrameSlicer\Videos\2023-09-26_070005_VID002.mp4", 16, r"C:\Users\phili\OneDrive\Year4\SE4450\FrameSlicer\OutputTest")
+extract_frames(r"C:\Users\phili\OneDrive\Year4\SE4450\MVIT2\MVIT-2.0\FrameSlicer\Videos\2023-09-26_070005_VID002.mp4", 12, r"C:\Users\phili\OneDrive\Year4\SE4450\MVIT2\MVIT-2.0\FrameSlicer\OutputTest4")
