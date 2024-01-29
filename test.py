@@ -32,6 +32,8 @@ from data import create_dataset
 from models import create_model
 from util.visualizer import save_images
 from util import html
+import cv2 #pip install opencv-python
+import numpy as np
 
 try:
     import wandb
