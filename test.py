@@ -128,7 +128,7 @@ if __name__ == '__main__':
         model.eval()
 
     # Video setup
-    video_path = "path/to/your/test_dataset_video.mp4"  # Change this to the path of your video file in the test dataset
+    video_path = "./datasets/horse2zebra/videoA/Horse_video.mov"  # Change this to the path of your video file in the test dataset
     video_capture = cv2.VideoCapture(video_path)
 
     # Read frames from the video file
