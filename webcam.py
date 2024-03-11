@@ -26,21 +26,18 @@ from models import create_model
 import cv2
 import torch
 import numpy as np
+import socket
+import pickle
+import struct
 import sys
 sys.path.append('./util')  # Add the directory containing the util module to the Python path
 from util import util  # Import the util module from the subdirectory
 
-#text set up -- Can probably remove
-# font 
-font = cv2.FONT_HERSHEY_SIMPLEX 
-# org 
-org = (0, 25) 
-# fontScale 
-fontScale = 1
-# Blue color in BGR 
-color = (255, 255, 255) 
-# Line thickness of 2 px 
-thickness = 2
+# Function to send frame over socket
+def send_frame(frame, sock):
+    data = pickle.dumps(frame)
+    frame_size = struct.pack("<L", len(data))
+    sock.sendall(frame_size + data)
 
 if __name__ == '__main__':
     opt = TestOptions().parse()  # get test options
@@ -56,11 +53,20 @@ if __name__ == '__main__':
         model.eval()
     
     #start video/webcamsetup
-    webcam = cv2.VideoCapture(0)
+    rtsp_url = "rtsp://172.30.103.91:port" #laptop webcam rtsp url
+    
+    #laptop ip and port
+    sender_address = '172.30.103.91'
+    sender_port = 8554
+
+    # Create socket for sender
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect((sender_address, sender_port))
+
+    webcam = cv2.VideoCapture(rtsp_url)
     # Check if the webcam is opened correctly
     if not webcam.isOpened():
         raise IOError("Cannot open webcam")
-
 
     #the CycleGan takes data as a dictionary
     #easier to work within that constraint than to reright
@@ -71,6 +77,8 @@ if __name__ == '__main__':
         #ret is bool returned by cap.read() -> whether or not frame was captured succesfully
         #if captured correctly, store in frame
         ret, frame = webcam.read()
+        if not ret:
+            break
 
         #resize frame
         frame = cv2.resize(frame, (256,256), interpolation=cv2.INTER_AREA)
@@ -94,24 +102,15 @@ if __name__ == '__main__':
         #use tensor2im function provided by util file
         result_image = util.tensor2im(result_image)
         result_image = cv2.cvtColor(np.array(result_image), cv2.COLOR_BGR2RGB)  
-        result_image = cv2.resize(result_image, (512, 512))      
-        #result_image = cv2.putText(result_image, str(opt.name)[6:-11], org, font,  # can probably remove
-        #           fontScale, color, thickness, cv2.LINE_AA)   
-        cv2.imshow('style', result_image)
+        result_image = cv2.resize(result_image, (512, 512))        
 
-        #ASCII value of Esc is 27. Can probably remove the c == 99 one
+        send_frame(result_image, client_socket)
+
+        #ASCII value of Esc is 27
         c = cv2.waitKey(1)
         if c == 27: # ends on holding esc, maybe we can do something else, like when the window closes or something
             break   # maybe instead of displaying in a window here, can do the react thing, but might not be needed
-        """
-        if c == 99:
-            if style_model_index == len(style_models): # not needed for us, but to remove error you could add 2 lines that he didn't add found on the webpage
-                style_model_index = 0
-            opt.name = style_models[style_model_index]
-            style_model_index += 1
-            model = create_model(opt)      # create a model given opt.model and other options
-            model.setup(opt) 
-        """
 
     webcam.release()
+    client_socket.close()
     cv2.destroyAllWindows()
