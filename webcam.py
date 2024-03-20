@@ -61,6 +61,9 @@ if __name__ == '__main__':
     if not webcam.isOpened():
         raise IOError("Cannot open webcam")
 
+    # Define the codec and create VideoWriter object
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Define the codec
+    out = cv2.VideoWriter('output.mp4', fourcc, 20.0, (512, 512))
 
     #the CycleGan takes data as a dictionary
     #easier to work within that constraint than to reright
@@ -96,9 +99,10 @@ if __name__ == '__main__':
         result_image = cv2.cvtColor(np.array(result_image), cv2.COLOR_BGR2RGB)  
         result_image = cv2.resize(result_image, (512, 512))      
         #result_image = cv2.putText(result_image, str(opt.name)[6:-11], org, font,  # can probably remove
-        #           fontScale, color, thickness, cv2.LINE_AA)   
+        #           fontScale, color, thickness, cv2.LINE_AA)  
+        #out.write(result_image) 
         cv2.imshow('style', result_image)
-
+        out.write(result_image)
         #ASCII value of Esc is 27. Can probably remove the c == 99 one
         c = cv2.waitKey(1)
         if c == 27: # ends on holding esc, maybe we can do something else, like when the window closes or something
