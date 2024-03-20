@@ -26,6 +26,7 @@ from models import create_model
 import cv2
 import torch
 import numpy as np
+import time
 import sys
 sys.path.append('./util')  # Add the directory containing the util module to the Python path
 from util import util  # Import the util module from the subdirectory
@@ -65,6 +66,10 @@ if __name__ == '__main__':
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Define the codec
     out = cv2.VideoWriter('output.mp4', fourcc, 20.0, (512, 512))
 
+    # Define variables for FPS calculation
+    start_time = time.time()
+    frame_count = 0
+
     #the CycleGan takes data as a dictionary
     #easier to work within that constraint than to reright
     # start an infinite loop and keep reading frames from the webcam until we encounter a keyboard interrupt
@@ -101,6 +106,14 @@ if __name__ == '__main__':
         #result_image = cv2.putText(result_image, str(opt.name)[6:-11], org, font,  # can probably remove
         #           fontScale, color, thickness, cv2.LINE_AA)  
         #out.write(result_image) 
+                # Calculate FPS
+        frame_count += 1
+        elapsed_time = time.time() - start_time
+        fps = frame_count / elapsed_time
+
+        # Display FPS on the image
+        cv2.putText(result_image, f'FPS: {fps:.2f}', (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+
         cv2.imshow('style', result_image)
         out.write(result_image)
         #ASCII value of Esc is 27. Can probably remove the c == 99 one
