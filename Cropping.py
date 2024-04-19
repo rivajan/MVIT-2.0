@@ -1,4 +1,4 @@
-import cv2
+import cv2 #imports
 import os
 
 def crop_image(input_path, output_path, threshold=60):
