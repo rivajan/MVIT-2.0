@@ -75,7 +75,7 @@ class BaseModel(ABC):
         """Calculate losses, gradients, and update network weights; called in every training iteration"""
         pass
 
-    def setup(self, opt):
+    def setup(self, opt): #used in train.py
         """Load and print networks; create schedulers
 
         Parameters:
@@ -142,22 +142,31 @@ class BaseModel(ABC):
         return errors_ret
 
     def save_networks(self, epoch):
-        """Save all the networks to the disk.
+        """Save all the networks to the disk. Allows to resume training from that point or to use the 
+        saved models for inference or evaluation.
 
         Parameters:
             epoch (int) -- current epoch; used in the file name '%s_net_%s.pth' % (epoch, name)
         """
-        for name in self.model_names:
-            if isinstance(name, str):
-                save_filename = '%s_net_%s.pth' % (epoch, name)
-                save_path = os.path.join(self.save_dir, save_filename)
-                net = getattr(self, 'net' + name)
+        for name in self.model_names: #iterates through  list of strings representing names of the models to be saved
+            if isinstance(name, str): #make sure is all string
+                save_filename = '%s_net_%s.pth' % (epoch, name) #make a file name with current epoch and model name
+                save_path = os.path.join(self.save_dir, save_filename) #combine directory where model is saved 'self.save_dir' with constructed file name to create the full path
+                net = getattr(self, 'net' + name) #built in python fucntion
+                #getattr usually used to retrieve an attribute from an object fynamically
+                #  --> particularly useful when name of attribute is not known until runtime
+                #in form : getattr(object, name[, default])
+                '''
+                object: The object from which the attribute is to be retrieved.
+name: A stri    name: A string that specifies the name of the attribute to be retrieved.
+default (opt    Default (optional): The value to return if the specified attribute does not exist.
+                '''
 
                 if len(self.gpu_ids) > 0 and torch.cuda.is_available():
                     torch.save(net.module.cpu().state_dict(), save_path)
-                    net.cuda(self.gpu_ids[0])
+                    net.cuda(self.gpu_ids[0]) #handles network saving differently than if using only CPU when GPU is available
                 else:
-                    torch.save(net.cpu().state_dict(), save_path)
+                    torch.save(net.cpu().state_dict(), save_path) 
 
     def __patch_instance_norm_state_dict(self, state_dict, module, keys, i=0):
         """Fix InstanceNorm checkpoints incompatibility (prior to 0.4)"""
@@ -173,7 +182,7 @@ class BaseModel(ABC):
         else:
             self.__patch_instance_norm_state_dict(state_dict, getattr(module, key), keys, i + 1)
 
-    def load_networks(self, epoch):
+    def load_networks(self, epoch): #used in setup method above, used to load 
         """Load all the networks from the disk.
 
         Parameters:

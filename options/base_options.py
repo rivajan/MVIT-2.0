@@ -65,16 +65,19 @@ class BaseOptions():
         Add additional model-specific and dataset-specific options.
         These options are defined in the <modify_commandline_options> function
         in model and dataset classes.
+        #collects and processes command line arguments or configuration setting, returning an options object 'opt'
         """
-        if not self.initialized:  # check if it has been initialized
-            parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-            parser = self.initialize(parser)
+        if not self.initialized:  # check if it has been initialized, only creates parser if it hasnt been done before
+            parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter) 
+            '''the parser allows help format 
+            creates instance of 'ArgumentParser' from argparse module in python'''
+            parser = self.initialize(parser) #adds custom arguments to parser, seen above
 
-        # get the basic options
-        opt, _ = parser.parse_known_args()
+        # get the basic options and put in object opt
+        opt, _ = parser.parse_known_args() 
 
         # modify model-related parser options
-        model_name = opt.model
+        model_name = opt.model #default gives cycelGAN
         model_option_setter = models.get_option_setter(model_name)
         parser = model_option_setter(parser, self.isTrain)
         opt, _ = parser.parse_known_args()  # parse again with new defaults
@@ -116,7 +119,7 @@ class BaseOptions():
     def parse(self):
         """Parse our options, create checkpoints directory suffix, and set up gpu device."""
         opt = self.gather_options()
-        opt.isTrain = self.isTrain   # train or test
+        opt.isTrain = self.isTrain   # train or test --> indicating whether model is in training mode or not (training or inference of model)
 
         # process opt.suffix
         if opt.suffix:
@@ -124,16 +127,23 @@ class BaseOptions():
             opt.name = opt.name + suffix
 
         self.print_options(opt)
-
+        '''
+creating a suffix for checkpoint directories and setting up the GPU device. 
+These steps are crucial for managing model checkpoints and ensuring that the 
+model can utilize available GPU resources.
+        '''
         # set gpu ids
         str_ids = opt.gpu_ids.split(',')
-        opt.gpu_ids = []
-        for str_id in str_ids:
-            id = int(str_id)
+        #opt.gpu_ids : a string containing GPU IDs seperated by commas
+        #split(',') splits string into a list of strings, each representing a GPU ID EX: ['12345'] --> [1] [2] [3] [4] [5]
+        opt.gpu_ids = [] #clear/ re-initialized 
+        for str_id in str_ids: #itterates all str_id in list of string IDs
+            id = int(str_id) #because before is string, change to int
             if id >= 0:
-                opt.gpu_ids.append(id)
+                opt.gpu_ids.append(id) #append to empty list #only valid GPU IDs are considered
         if len(opt.gpu_ids) > 0:
-            torch.cuda.set_device(opt.gpu_ids[0])
+            torch.cuda.set_device(opt.gpu_ids[0]) #use the first GPU ID out of all valid GPU IDs
 
         self.opt = opt
         return self.opt
+    # the opt object is like a list that stores all essential values

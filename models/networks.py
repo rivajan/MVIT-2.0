@@ -15,7 +15,7 @@ class Identity(nn.Module):
         return x
 
 
-def get_norm_layer(norm_type='instance'):
+def get_norm_layer(norm_type='instance'): #can be instance or batch or no normalization 
     """Return a normalization layer
 
     Parameters:
@@ -49,16 +49,30 @@ def get_scheduler(optimizer, opt):
     For other schedulers (step, plateau, and cosine), we use the default PyTorch schedulers.
     See https://pytorch.org/docs/stable/optim.html for more details.
     """
-    if opt.lr_policy == 'linear':
+    if opt.lr_policy == 'linear': #uses lambda function to calculate decay rate based on current epoch
+        '''
+        linear policy will keep learning rate same for first opt.n_epochs epochs
+        linear policy will then decay the learning rate to zero over the next opt.n_epochs_decay' epochs
+        uses a lambda function to calculate the decay rate based on current epoch
+        '''
         def lambda_rule(epoch):
             lr_l = 1.0 - max(0, epoch + opt.epoch_count - opt.n_epochs) / float(opt.n_epochs_decay + 1)
-            return lr_l
+            return lr_l 
         scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda_rule)
     elif opt.lr_policy == 'step':
+        #will decay learning rate by a factor of 'gamma' every 'step_size" of epochs
         scheduler = lr_scheduler.StepLR(optimizer, step_size=opt.lr_decay_iters, gamma=0.1)
     elif opt.lr_policy == 'plateau':
+        #reduces learning rate when a monitored metric has stopped improving
+        #useful when want to reduce learning rate once model performance plateaus
+        #mode = min --> scheduler looks to reduce metric
+        #factor specifies how much to reduce the learning rate by
+        #threshold and patience control sensitivity of reduction
         scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.2, threshold=0.01, patience=5)
     elif opt.lr_policy == 'cosine':
+        #adjusts learning rate following cosine annealing schedule
+        ##T_max specifies maximum number of iterations
+        #eta_min is minimum learning rate value
         scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=opt.n_epochs, eta_min=0)
     else:
         return NotImplementedError('learning rate policy [%s] is not implemented', opt.lr_policy)
@@ -76,7 +90,7 @@ def init_weights(net, init_type='normal', init_gain=0.02):
     We use 'normal' in the original pix2pix and CycleGAN paper. But xavier and kaiming might
     work better for some applications. Feel free to try yourself.
     """
-    def init_func(m):  # define the initialization function
+    def init_func(m):  # define the initialization function for weight and biase setting
         classname = m.__class__.__name__
         if hasattr(m, 'weight') and (classname.find('Conv') != -1 or classname.find('Linear') != -1):
             if init_type == 'normal':
@@ -230,9 +244,9 @@ class GANLoss(nn.Module):
         self.register_buffer('fake_label', torch.tensor(target_fake_label))
         self.gan_mode = gan_mode
         if gan_mode == 'lsgan':
-            self.loss = nn.MSELoss()
+            self.loss = nn.MSELoss() #loss is MSELoss
         elif gan_mode == 'vanilla':
-            self.loss = nn.BCEWithLogitsLoss()
+            self.loss = nn.BCEWithLogitsLoss() #loss is BCE With Logits Loss
         elif gan_mode in ['wgangp']:
             self.loss = None
         else:

@@ -2,7 +2,7 @@ import cv2
 
 # Change interval and reduce framerate for areas with good quality images
 
-video_path = "./2023-10-30_054815_VID001.mp4" # Path to video being broken up
+video_path = "./2020-04-08_054815_VID001.mp4" # Path to video being broken up
 output_folder = "./Video_Images/" # directory where frames are saved
 start_frame = 0  # Change the starting frame based on each video
 end_frame = 20000  # Set the ending frame, usually 12000+ unless you want to stop gathering frames early

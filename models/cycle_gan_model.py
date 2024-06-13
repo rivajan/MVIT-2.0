@@ -16,6 +16,12 @@ class CycleGANModel(BaseModel):
 
     CycleGAN paper: https://arxiv.org/pdf/1703.10593.pdf
     """
+    '''
+    The staticmethod serves as a utility function that configures the command-line arguments for the application.
+    It logically belongs to the class but does not require any specific instance of the class to operate.
+
+    It purely operates on the parser object passed as an argument and modifies it based on whether the operation is for training or not
+    '''
     @staticmethod
     def modify_commandline_options(parser, is_train=True):
         """Add new dataset-specific options, and rewrite default values for existing options.
@@ -53,6 +59,12 @@ class CycleGANModel(BaseModel):
         BaseModel.__init__(self, opt)
         # specify the training losses you want to print out. The training/test scripts will call <BaseModel.get_current_losses>
         self.loss_names = ['D_A', 'G_A', 'cycle_A', 'idt_A', 'D_B', 'G_B', 'cycle_B', 'idt_B']
+        '''
+        - 'D_A' and 'D_B' discriminator losses for domain A and B
+        - 'G_A' and 'G_B' generator losses for domain A and B
+        - 'cycle_A' and 'cycle_B' cycle consistency losses for A to B to A & B to A to B transformations
+        - 'idt_A' and 'idt_B' identity mapping losses for domain A and B
+        '''
         # specify the images you want to save/display. The training/test scripts will call <BaseModel.get_current_visuals>
         visual_names_A = ['real_A', 'fake_B', 'rec_A']
         visual_names_B = ['real_B', 'fake_A', 'rec_B']
@@ -74,13 +86,26 @@ class CycleGANModel(BaseModel):
                                         not opt.no_dropout, opt.init_type, opt.init_gain, self.gpu_ids)
         self.netG_B = networks.define_G(opt.output_nc, opt.input_nc, opt.ngf, opt.netG, opt.norm,
                                         not opt.no_dropout, opt.init_type, opt.init_gain, self.gpu_ids)
-
+        #input_nc: number of channels in the input images (3 for RGB)
+        #output_nc: number of channels in the outpu images
+        #opt.ngf: number of filters in the last convolutional layer (controls complexity of generator network)
+        #opt.netG: specifies the architecture of generator (ex: resnet_6bloacks, unet_256, unet_128 etc.)
+        #opt.norm: specifies normalization type: batch or instance etc. 
+        #not opt.no_dropout: true if 'opt.no_dropout' is 'false'
+        #opt.init_type: specifies type of weight initialization (ex: normal, xavier)
+        #opt.init_gain: vale used in weight initialization
+        #self.gpu_ids: list of GPU IDs, if not empty, model moved to GPU specified
         if self.isTrain:  # define discriminators
             self.netD_A = networks.define_D(opt.output_nc, opt.ndf, opt.netD,
                                             opt.n_layers_D, opt.norm, opt.init_type, opt.init_gain, self.gpu_ids)
             self.netD_B = networks.define_D(opt.input_nc, opt.ndf, opt.netD,
                                             opt.n_layers_D, opt.norm, opt.init_type, opt.init_gain, self.gpu_ids)
-
+        # netD_A defines discriminator for domain A
+        # netD_B defines discriminator for domain B
+        #opt.ndf: number of filters in first convolutional layer of discriminator (controls complexity of discriminator network)
+        #opt.netD: specifies architecture of disciminator network
+        #opt.n_layers_D: number of layers in discriminator
+        #     all specified by def initialize(self, parser) in base_options
         if self.isTrain:
             if opt.lambda_identity > 0.0:  # only works when input and output images have the same number of channels
                 assert(opt.input_nc == opt.output_nc)
